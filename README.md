@@ -24,5 +24,5 @@ It listens to a RabbitMQ queue, retrieves submitted code, runs it safely using `
     "output": 1024
   }
 }
-
-![Architecture](image.png "Architecture")
+```
+![Architecture](image.png)
