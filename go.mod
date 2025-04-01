@@ -1,5 +1,5 @@
-module isolate-wrapper
+module github.com/samuelloza/isolate-wrapper
 
 go 1.24.1
 
-require github.com/rabbitmq/amqp091-go v1.10.0 // indirect
+require github.com/davecgh/go-spew v1.1.1 // indirect
