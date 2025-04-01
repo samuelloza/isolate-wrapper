@@ -66,7 +66,7 @@ func Test_Evaluator_PE(t *testing.T) {
 		int main() {
 		    int a;
 		    cin>>a;
-		    cout<<a*10; // falta endl
+		    cout<<a*10;
 		    return 0;
 		}`, false)
 }
@@ -78,7 +78,7 @@ func Test_Evaluator_WA(t *testing.T) {
 		int main() {
 		    int a;
 		    cin>>a;
-		    cout<<a*10+1<<endl; // respuesta incorrecta
+		    cout<<a*10+1<<endl;
 		    return 0;
 		}`, false)
 }
@@ -99,7 +99,7 @@ func Test_Evaluator_TLE(t *testing.T) {
 		#include <iostream>
 		using namespace std;
 		int main() {
-		    while (true) {} // bucle infinito
+		    while (true) {}
 		    return 0;
 		}`, false)
 }
