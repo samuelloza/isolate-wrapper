@@ -7,12 +7,12 @@ import (
 	"os"
 	"unicode"
 
-	"github.com/samuelloza/isolate-wrapper/src/internal/domain/interfaces"
+	"github.com/samuelloza/isolate-wrapper/src/application/abstractions"
 )
 
 type Comparator struct{}
 
-func (c *Comparator) Compare(expectedPath string, outputPath string) (interfaces.ComparisonResult, error) {
+func (c *Comparator) Compare(expectedPath string, outputPath string) (abstractions.ComparisonResult, error) {
 	return c.CompareZoj(expectedPath, outputPath, "/box/input.txt")
 }
 
@@ -20,7 +20,7 @@ func isSpace(r rune) bool {
 	return r == ' ' || r == '\n' || r == '\r' || r == '\t'
 }
 
-func findNextNonSpace(reader1 *bufio.Reader, reader2 *bufio.Reader, c1 *rune, c2 *rune) (interfaces.ComparisonResult, error) {
+func findNextNonSpace(reader1 *bufio.Reader, reader2 *bufio.Reader, c1 *rune, c2 *rune) (abstractions.ComparisonResult, error) {
 	var err error
 	for unicode.IsSpace(*c1) || unicode.IsSpace(*c2) {
 		if *c1 != *c2 {
@@ -49,7 +49,7 @@ func findNextNonSpace(reader1 *bufio.Reader, reader2 *bufio.Reader, c1 *rune, c2
 			} else if *c2 == '\r' && *c1 == '\n' {
 				*c2, _, err = reader2.ReadRune()
 			} else {
-				return interfaces.OJ_PE, nil
+				return abstractions.OJ_PE, nil
 			}
 		}
 		if unicode.IsSpace(*c1) {
@@ -65,19 +65,19 @@ func findNextNonSpace(reader1 *bufio.Reader, reader2 *bufio.Reader, c1 *rune, c2
 			}
 		}
 	}
-	return interfaces.OJ_AC, nil
+	return abstractions.OJ_AC, nil
 }
 
-func (c *Comparator) CompareZoj(expectedPath, outputPath, inputPath string) (interfaces.ComparisonResult, error) {
+func (c *Comparator) CompareZoj(expectedPath, outputPath, inputPath string) (abstractions.ComparisonResult, error) {
 	f1, err1 := os.Open(expectedPath)
 	if err1 != nil {
-		return interfaces.OJ_RE, fmt.Errorf("error opening expected output: %w", err1)
+		return abstractions.OJ_RE, fmt.Errorf("error opening expected output: %w", err1)
 	}
 	defer f1.Close()
 
 	f2, err2 := os.Open(outputPath)
 	if err2 != nil {
-		return interfaces.OJ_RE, fmt.Errorf("error opening user output: %w", err2)
+		return abstractions.OJ_RE, fmt.Errorf("error opening user output: %w", err2)
 	}
 	defer f2.Close()
 
@@ -95,11 +95,11 @@ func (c *Comparator) CompareZoj(expectedPath, outputPath, inputPath string) (int
 			}
 			if c1 == -1 || c2 == -1 {
 				MakeDiffOut(expectedPath, outputPath, inputPath, c1, c2)
-				return interfaces.OJ_WA, nil
+				return abstractions.OJ_WA, nil
 			}
 			if c1 != c2 {
 				MakeDiffOut(expectedPath, outputPath, inputPath, c1, c2)
-				return interfaces.OJ_WA, nil
+				return abstractions.OJ_WA, nil
 			}
 			c1, _, _ = r1.ReadRune()
 			c2, _, _ = r2.ReadRune()
@@ -110,7 +110,7 @@ func (c *Comparator) CompareZoj(expectedPath, outputPath, inputPath string) (int
 		}
 		if c1 == -1 || c2 == -1 {
 			MakeDiffOut(expectedPath, outputPath, inputPath, c1, c2)
-			return interfaces.OJ_WA, nil
+			return abstractions.OJ_WA, nil
 		}
 		if (c1 == '\n' || c1 == -1) && (c2 == '\n' || c2 == -1) {
 			continue

@@ -1,37 +1,34 @@
-package application_test
+package application
 
 import (
 	"testing"
 
+	application "github.com/samuelloza/isolate-wrapper/src/application/services"
+	"github.com/samuelloza/isolate-wrapper/src/domain"
+
 	"github.com/davecgh/go-spew/spew"
-	"github.com/samuelloza/isolate-wrapper/src/internal/application"
-	"github.com/samuelloza/isolate-wrapper/src/internal/domain/model"
 )
 
-func buildInput(id string, boxID int, lang, src string) model.EvaluationInput {
-	return model.EvaluationInput{
+func runTest(t *testing.T, id string, boxID int, code string, expectAllPass bool) {
+	evaluator := application.NewEvaluatorService()
+	input := domain.EvaluationInput{
 		ID:          id,
 		UniqID:      id,
 		BoxID:       boxID,
 		ProblemName: "Suma de Dos Números",
-		Language:    lang,
-		SourceCode:  src,
+		Language:    "cpp",
+		SourceCode:  code,
 		MetaPrefix:  id + "-meta",
-		RunLimits: model.RunLimits{
+		RunLimits: domain.RunLimits{
 			Time:   2,
 			Memory: 65536,
 			Output: 1024,
 		},
-		TestCases: []model.TestCase{
-			{Input: "../../example/test_1.in", Output: "../../example/test_1.out"},
-			{Input: "../../example/test_2.in", Output: "../../example/test_2.out"},
+		TestCases: []domain.TestCase{
+			{Input: "../../testcases/test_1.in", Output: "../../testcases/test_1.out"},
+			{Input: "../../testcases/test_2.in", Output: "../../testcases/test_2.out"},
 		},
 	}
-}
-
-func runTest(t *testing.T, id string, boxID int, code string, expectAllPass bool) {
-	evaluator := application.NewEvaluatorService()
-	input := buildInput(id, boxID, "cpp", code)
 	result, err := evaluator.Evaluate(input)
 	if err != nil {
 		t.Fatalf("Evaluate returned error: %v", err)

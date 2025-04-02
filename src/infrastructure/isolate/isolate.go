@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/samuelloza/isolate-wrapper/src/internal/domain/interfaces"
+	"github.com/samuelloza/isolate-wrapper/src/application/abstractions"
 )
 
 type IsolateSandbox struct{}
@@ -27,7 +27,7 @@ func (s *IsolateSandbox) Cleanup(boxID int) error {
 	return err
 }
 
-func (s *IsolateSandbox) Run(boxID int, caseIndex int) (interfaces.SandboxLogData, error) {
+func (s *IsolateSandbox) Run(boxID int, caseIndex int) (abstractions.SandboxLogData, error) {
 	opts := s.BuildBoxOptions(boxID, caseIndex)
 	opts = append(opts, "--", "/source/Main")
 
@@ -36,18 +36,18 @@ func (s *IsolateSandbox) Run(boxID int, caseIndex int) (interfaces.SandboxLogDat
 	if err != nil {
 		fmt.Printf("%s\n", output)
 		fmt.Printf("Error to execute Box id %d:\n%s\n", boxID, string(err.Error())+string(output))
-		return interfaces.SandboxLogData{}, err
+		return abstractions.SandboxLogData{}, err
 	}
 
 	log, err := s.ReadLog(boxID)
 	if err != nil {
-		return interfaces.SandboxLogData{}, err
+		return abstractions.SandboxLogData{}, err
 	}
 
 	execTime, _ := strconv.Atoi(log["time"])
 	memUsed, _ := strconv.Atoi(log["cg-mem"])
 
-	return interfaces.SandboxLogData{
+	return abstractions.SandboxLogData{
 		ExecutionTime: execTime,
 		MemoryUsed:    memUsed,
 	}, nil

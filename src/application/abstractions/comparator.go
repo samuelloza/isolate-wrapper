@@ -1,4 +1,4 @@
-package interfaces
+package abstractions
 
 type Comparator interface {
 	Compare(expectedPath string, outputPath string) (ComparisonResult, error)

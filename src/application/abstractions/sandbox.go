@@ -1,4 +1,4 @@
-package interfaces
+package abstractions
 
 type Sandbox interface {
 	Init(boxID int) error

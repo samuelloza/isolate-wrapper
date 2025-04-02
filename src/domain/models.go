@@ -1,4 +1,4 @@
-package model
+package domain
 
 type RunLimits struct {
 	Time   int `json:"time"`

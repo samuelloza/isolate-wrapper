@@ -1,4 +1,4 @@
-package interfaces
+package abstractions
 
 type FileSystem interface {
 	WriteFile(boxID int, fileName string, content string) error
@@ -6,4 +6,5 @@ type FileSystem interface {
 	GetFilePath(boxID int, fileName string) string
 	GetOutputPath(boxID int) string
 	GetErrorPath(boxID int) string
+	DeleteDir(s string) error
 }

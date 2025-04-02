@@ -1,4 +1,4 @@
-package model
+package domain
 
 type TestCaseResult struct {
 	Index         int
