@@ -1,4 +1,4 @@
-package isolate
+package interfaces
 
 type IsolateSandbox struct {
 	BoxID            int

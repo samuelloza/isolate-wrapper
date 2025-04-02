@@ -11,8 +11,5 @@
             "mode": "debug",
             "program": "src/cmd/server/main.go"
         }
-        
-
-
     ]
 }

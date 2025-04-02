@@ -23,3 +23,8 @@ type EvaluationInput struct {
 	RunLimits   RunLimits  `json:"run_limits"`
 	TestCases   []TestCase `json:"testcases"`
 }
+
+type SandboxLog struct {
+	ExecutionTime int
+	MemoryUsed    int
+}

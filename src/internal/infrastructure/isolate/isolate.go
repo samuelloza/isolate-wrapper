@@ -4,80 +4,77 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
+
+	"github.com/samuelloza/isolate-wrapper/src/internal/domain/interfaces"
 )
 
-type IsolateSandbox struct {
-	BoxID            int
-	RunLogPrefix     string
-	FSize            int
-	StackSpace       int
-	AddressSpace     int
-	StdinFile        string
-	StdoutFile       string
-	StderrFile       string
-	Timeout          float64
-	WallclockTimeout float64
-	ExtraTimeout     float64
-}
+type IsolateSandbox struct{}
 
-func (s *IsolateSandbox) Init() (string, error) {
-	cmd := exec.Command("/usr/local/bin/isolate", "--box-id", fmt.Sprint(s.BoxID), "--cg", "--init")
+func (s *IsolateSandbox) Init(boxID int) error {
+	cmd := exec.Command("/usr/local/bin/isolate", "--box-id", fmt.Sprint(boxID), "--cg", "--init")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("Error to Init isolate Box id %d:\n%s\n", s.BoxID, string(output))
-		return "", err
+		return fmt.Errorf("failed to initialize sandbox: %s", string(output))
 	}
-	return strings.TrimSpace(string(output)), nil
+	return nil
 }
 
-func (s *IsolateSandbox) Cleanup() (string, error) {
-	cmd := exec.Command("/usr/local/bin/isolate", "--box-id", fmt.Sprint(s.BoxID), "--cg", "--cleanup")
-	output, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(output)), nil
+func (s *IsolateSandbox) Cleanup(boxID int) error {
+	cmd := exec.Command("/usr/local/bin/isolate", "--box-id", fmt.Sprint(boxID), "--cg", "--cleanup")
+	_, err := cmd.Output()
+	return err
 }
 
-func (s *IsolateSandbox) BuildBoxOptions(caseIndex int) []string {
-	tmpDirectory := fmt.Sprintf("/tmp/patito-wrapper-%d", s.BoxID)
-	sandboxPath := "/source"
-	return []string{
-		fmt.Sprintf("--box-id=%d", s.BoxID),
-		"--cg",
-		fmt.Sprintf("--dir=/source=%s:rw", tmpDirectory),
-		fmt.Sprintf("--stdin=%s", fmt.Sprintf("%s/%s", sandboxPath, s.StdinFile)),
-		fmt.Sprintf("--stdout=%s", fmt.Sprintf("/box/%s", s.StdoutFile)),
-		fmt.Sprintf("--stderr=%s", fmt.Sprintf("/box/%s", s.StderrFile)),
-		fmt.Sprintf("--meta=%s", fmt.Sprintf("%s/meta", tmpDirectory)),
-		fmt.Sprintf("--fsize=%d", s.FSize/1024),
-		fmt.Sprintf("--cg-mem=%d", s.AddressSpace),
-		fmt.Sprintf("--time=%.2f", s.Timeout),
-		fmt.Sprintf("--wall-time=%.2f", s.WallclockTimeout),
-		fmt.Sprintf("--extra-time=%.2f", s.ExtraTimeout),
-		"--run",
-	}
-}
-
-func (s *IsolateSandbox) Run(executable string, caseIndex int) (map[string]string, error) {
-	opts := s.BuildBoxOptions(caseIndex)
+func (s *IsolateSandbox) Run(boxID int, caseIndex int) (interfaces.SandboxLogData, error) {
+	opts := s.BuildBoxOptions(boxID, caseIndex)
 	opts = append(opts, "--", "/source/Main")
 
 	cmd := exec.Command("/usr/local/bin/isolate", opts...)
 	output, err := cmd.CombinedOutput()
-
 	if err != nil {
 		fmt.Printf("%s\n", output)
-		fmt.Printf("Error to execute Box id %d:\n%s\n", s.BoxID, string(err.Error())+string(output))
-		return nil, err
+		fmt.Printf("Error to execute Box id %d:\n%s\n", boxID, string(err.Error())+string(output))
+		return interfaces.SandboxLogData{}, err
 	}
 
-	return s.ReadLog(s.BoxID)
+	log, err := s.ReadLog(boxID)
+	if err != nil {
+		return interfaces.SandboxLogData{}, err
+	}
+
+	execTime, _ := strconv.Atoi(log["time"])
+	memUsed, _ := strconv.Atoi(log["cg-mem"])
+
+	return interfaces.SandboxLogData{
+		ExecutionTime: execTime,
+		MemoryUsed:    memUsed,
+	}, nil
 }
 
-func (s *IsolateSandbox) ReadLog(boxId int) (map[string]string, error) {
-	logFile := fmt.Sprintf("/tmp/patito-wrapper-%d/meta", boxId)
+func (s *IsolateSandbox) BuildBoxOptions(boxID int, caseIndex int) []string {
+	tmpDirectory := fmt.Sprintf("/tmp/patito-wrapper-%d", boxID)
+	sandboxPath := "/source"
+	return []string{
+		fmt.Sprintf("--box-id=%d", boxID),
+		"--cg",
+		fmt.Sprintf("--dir=/source=%s:rw", tmpDirectory),
+		fmt.Sprintf("--stdin=%s", fmt.Sprintf("%s/%s", sandboxPath, "input.txt")),
+		fmt.Sprintf("--stdout=%s", fmt.Sprintf("/box/%s", "user_output.txt")),
+		fmt.Sprintf("--stderr=%s", fmt.Sprintf("/box/%s", "error.txt")),
+		fmt.Sprintf("--meta=%s", fmt.Sprintf("%s/meta", tmpDirectory)),
+		fmt.Sprintf("--fsize=%d", 1024),
+		fmt.Sprintf("--cg-mem=%d", 1024),
+		fmt.Sprintf("--time=%.2f", 1.0),
+		fmt.Sprintf("--wall-time=%.2f", 1.0),
+		fmt.Sprintf("--extra-time=%.2f", 0.5),
+		"--run",
+	}
+}
+
+func (s *IsolateSandbox) ReadLog(boxID int) (map[string]string, error) {
+	logFile := fmt.Sprintf("/tmp/patito-wrapper-%d/meta", boxID)
 	data, err := os.ReadFile(logFile)
 	if err != nil {
 		return nil, err

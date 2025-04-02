@@ -17,3 +17,13 @@ type EvaluationResult struct {
 	TotalCases   int
 	Status       string
 }
+
+const (
+	OJ_AC  = 0
+	OJ_WA  = 1
+	OJ_TLE = 2
+	OJ_MLE = 3
+	OJ_RE  = 4
+	OJ_CE  = 5
+	OJ_PE  = 6
+)
