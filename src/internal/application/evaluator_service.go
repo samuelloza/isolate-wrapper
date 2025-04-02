@@ -3,11 +3,11 @@ package application
 import (
 	"fmt"
 
-	"github.com/samuelloza/isolate-wrapper/internal/domain/model"
-	"github.com/samuelloza/isolate-wrapper/internal/infrastructure/comparator"
-	"github.com/samuelloza/isolate-wrapper/internal/infrastructure/compiler"
-	"github.com/samuelloza/isolate-wrapper/internal/infrastructure/fileSystem"
-	"github.com/samuelloza/isolate-wrapper/internal/infrastructure/isolate"
+	"github.com/samuelloza/isolate-wrapper/src/internal/domain/model"
+	"github.com/samuelloza/isolate-wrapper/src/internal/infrastructure/comparator"
+	"github.com/samuelloza/isolate-wrapper/src/internal/infrastructure/compiler"
+	"github.com/samuelloza/isolate-wrapper/src/internal/infrastructure/fileSystem"
+	"github.com/samuelloza/isolate-wrapper/src/internal/infrastructure/isolate"
 )
 
 type EvaluatorService struct{}

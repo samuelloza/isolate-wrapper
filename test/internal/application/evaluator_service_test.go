@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/samuelloza/isolate-wrapper/internal/application"
-	"github.com/samuelloza/isolate-wrapper/internal/domain/model"
+	"github.com/samuelloza/isolate-wrapper/src/internal/application"
+	"github.com/samuelloza/isolate-wrapper/src/internal/domain/model"
 )
 
 func buildInput(id string, boxID int, lang, src string) model.EvaluationInput {
