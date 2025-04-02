@@ -1,16 +1,21 @@
 package application
 
 import (
+	"fmt"
+	"log"
 	"testing"
 
 	"github.com/samuelloza/isolate-wrapper/src/application/services"
 	"github.com/samuelloza/isolate-wrapper/src/domain"
+	"github.com/samuelloza/isolate-wrapper/src/infrastructure/comparator"
+	"github.com/samuelloza/isolate-wrapper/src/infrastructure/compiler"
+	"github.com/samuelloza/isolate-wrapper/src/infrastructure/fileSystem"
+	"github.com/samuelloza/isolate-wrapper/src/infrastructure/isolate"
 
 	"github.com/davecgh/go-spew/spew"
 )
 
 func runTest(t *testing.T, id string, boxID int, code string, expectAllPass bool) {
-	evaluator := services.NewEvaluatorService()
 	input := domain.EvaluationInput{
 		ID:          id,
 		UniqID:      id,
@@ -29,6 +34,25 @@ func runTest(t *testing.T, id string, boxID int, code string, expectAllPass bool
 			{Input: "../../testcases/test_2.in", Output: "../../testcases/test_2.out"},
 		},
 	}
+
+	SandboxManagerService := services.NewSandboxManagerService(99)
+	boxId, err := SandboxManagerService.GetAvailableSandboxID(input.BoxID)
+	if err != nil {
+		log.Fatalf("Error getting sandbox: %v", err)
+	}
+	input.BoxID = boxId
+
+	directoryTmp := fmt.Sprintf("/tmp/patito-wrapper-%d", input.BoxID)
+	sandboxImpl := &isolate.IsolateSandbox{}
+	compilerImpl, err := compiler.GetCompiler(input.Language, directoryTmp)
+	if err != nil {
+		log.Fatalf("Compiler error: %v", err)
+	}
+	fileSystemImpl := &fileSystem.FileSystem{}
+	comparatorImpl := &comparator.Comparator{}
+
+	evaluator := services.NewEvaluatorService(sandboxImpl, compilerImpl, fileSystemImpl, comparatorImpl)
+
 	result, err := evaluator.Evaluate(input)
 	if err != nil {
 		t.Fatalf("Evaluate returned error: %v", err)
