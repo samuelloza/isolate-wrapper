@@ -1,7 +1,6 @@
 package services_test
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -44,6 +43,14 @@ int main(){
 }
 `
 
+var boxPool *services.BoxPool
+
+func TestMain(m *testing.M) {
+	boxPool = services.NewBoxPool(2)
+	code := m.Run()
+	os.Exit(code)
+}
+
 func getTestCases(paths []struct{ in, out string }, cwd string) []domain.TestCase {
 	var tcs []domain.TestCase
 	for _, p := range paths {
@@ -56,6 +63,7 @@ func getTestCases(paths []struct{ in, out string }, cwd string) []domain.TestCas
 }
 
 func TestEvaluator_AllAC(t *testing.T) {
+	t.Parallel()
 	cwd, _ := os.Getwd()
 	projectRoot := filepath.Join(cwd, "../../../")
 
@@ -76,24 +84,26 @@ func TestEvaluator_AllAC(t *testing.T) {
 		TestCases:   testCases,
 	}
 
-	sandboxManager := services.NewSandboxManagerService(99)
-	availableID, err := sandboxManager.GetAvailableSandboxID(input.BoxID)
+	sandbox := &isolate.IsolateSandbox{}
+	fs := &fileSystem.FileSystem{}
+	cmp := &comparator.Comparator{}
+
+	sandboxManager := services.NewSandboxManagerService()
+	availableID, err := sandboxManager.GetAvailableSandboxID(input.BoxID, boxPool)
 	if err != nil {
 		t.Fatalf("No hay sandbox disponible: %v", err)
 	}
 	input.BoxID = availableID
-	dir := fmt.Sprintf("/tmp/patito-wrapper-%d", input.BoxID)
 
-	sandbox := &isolate.IsolateSandbox{}
-	compilerService, err := compiler.GetCompiler(input.Language, dir)
+	compilerService, err := compiler.GetCompiler(input.Language, input.BoxID)
 	if err != nil {
 		t.Fatalf("Error obteniendo compilador: %v", err)
 	}
-	fs := &fileSystem.FileSystem{}
-	cmp := &comparator.Comparator{}
 	evaluator := services.NewEvaluatorService(sandbox, compilerService, fs, cmp)
 
 	result, err := evaluator.Evaluate(input)
+	defer boxPool.Release(input.BoxID)
+
 	if err != nil {
 		t.Fatalf("Error al evaluar: %v", err)
 	}
@@ -109,14 +119,16 @@ func TestEvaluator_AllAC(t *testing.T) {
 }
 
 func TestEvaluator_Mixed2AC2WA(t *testing.T) {
-	cwd := "/home/sam/project/github/isolate-wrapper"
+	t.Parallel()
+	cwd, _ := os.Getwd()
+	projectRoot := filepath.Join(cwd, "../../../")
 	paths := []struct{ in, out string }{
 		{"test/testcases/sum_mixed_1.in", "test/testcases/sum_mixed_1.out"},
 		{"test/testcases/sum_mixed_2.in", "test/testcases/sum_mixed_2.out"},
 		{"test/testcases/sum_mixed_3.in", "test/testcases/sum_mixed_3.out"},
 		{"test/testcases/sum_mixed_4.in", "test/testcases/sum_mixed_4.out"},
 	}
-	testCases := getTestCases(paths, cwd)
+	testCases := getTestCases(paths, projectRoot)
 
 	input := domain.EvaluationInput{
 		ID:          "mixed-2ac-2wa",
@@ -129,16 +141,15 @@ func TestEvaluator_Mixed2AC2WA(t *testing.T) {
 		TestCases:   testCases,
 	}
 
-	sandboxManager := services.NewSandboxManagerService(99)
-	availableID, err := sandboxManager.GetAvailableSandboxID(input.BoxID)
+	sandboxManager := services.NewSandboxManagerService()
+	availableID, err := sandboxManager.GetAvailableSandboxID(input.BoxID, boxPool)
 	if err != nil {
 		t.Fatalf("No hay sandbox disponible: %v", err)
 	}
 	input.BoxID = availableID
-	dir := fmt.Sprintf("/tmp/patito-wrapper-%d", input.BoxID)
 
 	sandbox := &isolate.IsolateSandbox{}
-	compilerService, err := compiler.GetCompiler(input.Language, dir)
+	compilerService, err := compiler.GetCompiler(input.Language, input.BoxID)
 	if err != nil {
 		t.Fatalf("Error obteniendo compilador: %v", err)
 	}
@@ -147,6 +158,8 @@ func TestEvaluator_Mixed2AC2WA(t *testing.T) {
 	evaluator := services.NewEvaluatorService(sandbox, compilerService, fs, cmp)
 
 	result, err := evaluator.Evaluate(input)
+	defer boxPool.Release(input.BoxID)
+
 	if err != nil {
 		t.Fatalf("Error al evaluar: %v", err)
 	}
@@ -161,6 +174,7 @@ func TestEvaluator_Mixed2AC2WA(t *testing.T) {
 }
 
 func TestEvaluator_MixedAC_RTE_TLE(t *testing.T) {
+	t.Parallel()
 	cwd, _ := os.Getwd()
 	projectRoot := filepath.Join(cwd, "../../../")
 
@@ -182,16 +196,15 @@ func TestEvaluator_MixedAC_RTE_TLE(t *testing.T) {
 		TestCases:   testCases,
 	}
 
-	sandboxManager := services.NewSandboxManagerService(99)
-	availableID, err := sandboxManager.GetAvailableSandboxID(input.BoxID)
+	sandboxManager := services.NewSandboxManagerService()
+	availableID, err := sandboxManager.GetAvailableSandboxID(input.BoxID, boxPool)
 	if err != nil {
 		t.Fatalf("No hay sandbox disponible: %v", err)
 	}
 	input.BoxID = availableID
-	dir := fmt.Sprintf("/tmp/patito-wrapper-%d", input.BoxID)
 
 	sandbox := &isolate.IsolateSandbox{}
-	compilerService, err := compiler.GetCompiler(input.Language, dir)
+	compilerService, err := compiler.GetCompiler(input.Language, input.BoxID)
 	if err != nil {
 		t.Fatalf("Error obteniendo compilador: %v", err)
 	}
@@ -203,6 +216,7 @@ func TestEvaluator_MixedAC_RTE_TLE(t *testing.T) {
 	var result domain.EvaluationResult
 	go func() {
 		result, err = evaluator.Evaluate(input)
+		defer boxPool.Release(input.BoxID)
 		close(done)
 	}()
 
@@ -226,6 +240,7 @@ func TestEvaluator_MixedAC_RTE_TLE(t *testing.T) {
 }
 
 func TestEvaluator_Complex(t *testing.T) {
+	t.Parallel()
 	cwd, _ := os.Getwd()
 	projectRoot := filepath.Join(cwd, "../../../")
 
@@ -251,16 +266,15 @@ func TestEvaluator_Complex(t *testing.T) {
 		TestCases:   testCases,
 	}
 
-	sandboxManager := services.NewSandboxManagerService(99)
-	availableID, err := sandboxManager.GetAvailableSandboxID(input.BoxID)
+	sandboxManager := services.NewSandboxManagerService()
+	availableID, err := sandboxManager.GetAvailableSandboxID(input.BoxID, boxPool)
 	if err != nil {
 		t.Fatalf("No hay sandbox disponible: %v", err)
 	}
 	input.BoxID = availableID
-	dir := fmt.Sprintf("/tmp/patito-wrapper-%d", input.BoxID)
 
 	sandbox := &isolate.IsolateSandbox{}
-	compilerService, err := compiler.GetCompiler(input.Language, dir)
+	compilerService, err := compiler.GetCompiler(input.Language, input.BoxID)
 	if err != nil {
 		t.Fatalf("Error obteniendo compilador: %v", err)
 	}
@@ -272,6 +286,7 @@ func TestEvaluator_Complex(t *testing.T) {
 	var result domain.EvaluationResult
 	go func() {
 		result, err = evaluator.Evaluate(input)
+		defer boxPool.Release(input.BoxID)
 		close(done)
 	}()
 

@@ -8,16 +8,17 @@ type Compiler interface {
 	Compile(srcPath string, boxDir string) error
 }
 
-func GetCompiler(language string, SandBoxDir string) (Compiler, error) {
+func GetCompiler(language string, boxID int) (Compiler, error) {
+	sandBoxTmpDir := fmt.Sprintf("/tmp/patito-wrapper-%d", boxID)
 	switch language {
 	case "cpp":
-		return &CppCompiler{SandBoxDir: SandBoxDir}, nil
+		return &CppCompiler{SandBoxDir: sandBoxTmpDir}, nil
 	case "python":
-		return &PythonCompiler{SandBoxDir: SandBoxDir}, nil
+		return &PythonCompiler{SandBoxDir: sandBoxTmpDir}, nil
 	case "java":
-		return &JavaCompiler{SandBoxDir: SandBoxDir}, nil
+		return &JavaCompiler{SandBoxDir: sandBoxTmpDir}, nil
 	case "pseint":
-		return &PseintCompiler{SandBoxDir: SandBoxDir}, nil
+		return &PseintCompiler{SandBoxDir: sandBoxTmpDir}, nil
 	default:
 		return nil, fmt.Errorf("unsupported language: %s", language)
 	}

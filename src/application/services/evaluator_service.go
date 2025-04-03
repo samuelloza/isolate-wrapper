@@ -50,12 +50,13 @@ func (s *EvaluatorService) Evaluate(input domain.EvaluationInput) (domain.Evalua
 		Status:      OJ_CO,
 	}
 
+	defer s.Sandbox.Cleanup(input.BoxID)
+	defer s.FileSystem.DeleteDir(fmt.Sprint(input.BoxID))
+
 	// Initialize sandbox
 	if err := s.Sandbox.Init(input.BoxID); err != nil {
 		return evaluationResult, fmt.Errorf("failed to initialize sandbox: %w", err)
 	}
-	defer s.Sandbox.Cleanup(input.BoxID)
-	defer s.FileSystem.DeleteDir(fmt.Sprint(input.BoxID))
 
 	s.FileSystem.CreateTmpDirectory(input.BoxID)
 	// Write source code to temporary directory
@@ -132,6 +133,9 @@ func (s *EvaluatorService) Evaluate(input domain.EvaluationInput) (domain.Evalua
 	} else {
 		evaluationResult.Status = OJ_WA
 	}
+
+	s.Sandbox.Cleanup(input.BoxID)
+	s.FileSystem.DeleteDir(fmt.Sprint(input.BoxID))
 
 	return evaluationResult, nil
 }

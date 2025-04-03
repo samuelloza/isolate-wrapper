@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"path/filepath"
 
@@ -42,16 +41,16 @@ func main() {
 		},
 	}
 
-	SandboxManagerService := services.NewSandboxManagerService(99)
-	boxId, err := SandboxManagerService.GetAvailableSandboxID(input.BoxID)
+	boxPool := services.NewBoxPool(2)
+	SandboxManagerService := services.NewSandboxManagerService()
+	boxId, err := SandboxManagerService.GetAvailableSandboxID(input.BoxID, boxPool)
 	if err != nil {
 		log.Fatalf("Error getting sandbox: %v", err)
 	}
 	input.BoxID = boxId
 
-	directoryTmp := fmt.Sprintf("/tmp/patito-wrapper-%d", input.BoxID)
 	sandboxImpl := &isolate.IsolateSandbox{}
-	compilerImpl, err := compiler.GetCompiler(input.Language, directoryTmp)
+	compilerImpl, err := compiler.GetCompiler(input.Language, input.BoxID)
 	if err != nil {
 		log.Fatalf("Compiler error: %v", err)
 	}

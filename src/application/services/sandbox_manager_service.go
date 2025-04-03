@@ -6,12 +6,10 @@ import (
 	"time"
 )
 
-type SandboxManagerService struct {
-	MaxBoxes int
-}
+type SandboxManagerService struct{}
 
-func NewSandboxManagerService(maxBoxes int) *SandboxManagerService {
-	return &SandboxManagerService{MaxBoxes: maxBoxes}
+func NewSandboxManagerService() *SandboxManagerService {
+	return &SandboxManagerService{}
 }
 
 func (sm *SandboxManagerService) IsSandboxIDFree(boxID int) bool {
@@ -26,24 +24,17 @@ func (sm *SandboxManagerService) IsSandboxIDFree(boxID int) bool {
 	return false
 }
 
-func (sm *SandboxManagerService) GetAvailableSandboxID(initialBoxID int) (int, error) {
-	boxID := initialBoxID
-	attempts := 0
+func (sm *SandboxManagerService) GetAvailableSandboxID(initialBoxID int, boxPool *BoxPool) (int, error) {
+	maxAttempts := 20
 
-	for {
-		isFree := sm.IsSandboxIDFree(boxID)
-		if isFree && boxID > 0 {
+	for i := 0; i < maxAttempts; i++ {
+		select {
+		case boxID := <-boxPool.pool:
 			return boxID, nil
+		default:
+			time.Sleep(3 * time.Second)
 		}
-
-		boxID = (boxID + 1) % sm.MaxBoxes
-		attempts++
-
-		if attempts >= sm.MaxBoxes {
-			return 0, fmt.Errorf("no available sandbox IDs after %d attempts", attempts)
-		}
-
-		// Waiting 3 seconds
-		time.Sleep(3 * time.Second)
 	}
+
+	return 0, fmt.Errorf("timeout: all sandboxes are busy after %d attempts", maxAttempts)
 }

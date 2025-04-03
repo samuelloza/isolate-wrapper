@@ -36,7 +36,7 @@ func (fs *FileSystem) CreateTmpDirectory(boxID int) error {
 }
 
 func (fs *FileSystem) DeleteDir(path string) error {
-	return os.RemoveAll(path)
+	return os.RemoveAll(fmt.Sprintf("/tmp/patito-wrapper-%s", path))
 }
 
 func CreateDirectory(path string) error {
