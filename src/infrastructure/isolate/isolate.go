@@ -27,30 +27,40 @@ func (s *IsolateSandbox) Cleanup(boxID int) error {
 	return err
 }
 
-func (s *IsolateSandbox) Run(boxID int, caseIndex int) (abstractions.SandboxLogData, error) {
+func (s *IsolateSandbox) Run(boxID int, caseIndex int) (abstractions.SandboxLogData, int) {
 	opts := s.BuildBoxOptions(boxID, caseIndex)
 	opts = append(opts, "--", "/source/Main")
 
 	cmd := exec.Command("/usr/local/bin/isolate", opts...)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Printf("%s\n", output)
-		fmt.Printf("Error to execute Box id %d:\n%s\n", boxID, string(err.Error())+string(output))
-		return abstractions.SandboxLogData{}, err
-	}
+	output, _ := cmd.CombinedOutput()
 
 	log, err := s.ReadLog(boxID)
 	if err != nil {
-		return abstractions.SandboxLogData{}, err
+		return abstractions.SandboxLogData{}, abstractions.OJ_WT0
 	}
 
 	execTime, _ := strconv.ParseFloat(log["time"], 64)
 	memUsed, _ := strconv.Atoi(log["cg-mem"])
 
+	if log["exitcode"] != "0" {
+		fmt.Printf("%s\n", output)
+		fmt.Printf("Error to execute Box id %d:\n%s\n", boxID, log["message"]+string(output))
+		if log["status"] == "TO" {
+			return abstractions.SandboxLogData{
+				ExecutionTime: execTime,
+				MemoryUsed:    memUsed,
+			}, abstractions.OJ_TL
+		}
+		return abstractions.SandboxLogData{
+			ExecutionTime: execTime,
+			MemoryUsed:    memUsed,
+		}, abstractions.OJ_RE
+	}
+
 	return abstractions.SandboxLogData{
 		ExecutionTime: execTime,
 		MemoryUsed:    memUsed,
-	}, nil
+	}, -1
 }
 
 func (s *IsolateSandbox) BuildBoxOptions(boxID int, caseIndex int) []string {

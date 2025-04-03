@@ -43,25 +43,6 @@ int main(){
 }
 `
 
-var boxPool *services.BoxPool
-
-func TestMain(m *testing.M) {
-	boxPool = services.NewBoxPool(2)
-	code := m.Run()
-	os.Exit(code)
-}
-
-func getTestCases(paths []struct{ in, out string }, cwd string) []domain.TestCase {
-	var tcs []domain.TestCase
-	for _, p := range paths {
-		tcs = append(tcs, domain.TestCase{
-			Input:  filepath.Join(cwd, p.in),
-			Output: filepath.Join(cwd, p.out),
-		})
-	}
-	return tcs
-}
-
 func TestEvaluator_AllAC(t *testing.T) {
 	t.Parallel()
 	cwd, _ := os.Getwd()
@@ -77,7 +58,7 @@ func TestEvaluator_AllAC(t *testing.T) {
 		ID:          "all-ac",
 		UniqID:      "all-ac",
 		BoxID:       0,
-		ProblemName: "Suma de Dos Números",
+		ProblemName: "A + B",
 		Language:    "cpp",
 		SourceCode:  sumSource,
 		RunLimits:   domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
@@ -91,13 +72,13 @@ func TestEvaluator_AllAC(t *testing.T) {
 	sandboxManager := services.NewSandboxManagerService()
 	availableID, err := sandboxManager.GetAvailableSandboxID(input.BoxID, boxPool)
 	if err != nil {
-		t.Fatalf("No hay sandbox disponible: %v", err)
+		t.Fatalf("No sandbox available: %v", err)
 	}
 	input.BoxID = availableID
 
 	compilerService, err := compiler.GetCompiler(input.Language, input.BoxID)
 	if err != nil {
-		t.Fatalf("Error obteniendo compilador: %v", err)
+		t.Fatalf("Error getting compiler: %v", err)
 	}
 	evaluator := services.NewEvaluatorService(sandbox, compilerService, fs, cmp)
 
@@ -105,16 +86,16 @@ func TestEvaluator_AllAC(t *testing.T) {
 	defer boxPool.Release(input.BoxID)
 
 	if err != nil {
-		t.Fatalf("Error al evaluar: %v", err)
+		t.Fatalf("Error during evaluation: %v", err)
 	}
 
 	spew.Dump(result)
 
 	if result.TotalPassed != len(result.Results) {
-		t.Errorf("Se esperaban %d casos aprobados, pero se aprobaron %d", len(result.Results), result.TotalPassed)
+		t.Errorf("Expected %d test cases to pass, but %d passed", len(result.Results), result.TotalPassed)
 	}
 	if result.Status != abstractions.OJ_AC {
-		t.Errorf("Se esperaba status 7 (OJ_OE), pero se obtuvo %d", result.Status)
+		t.Errorf("Expected status 7 (OJ_AC), but got %d", result.Status)
 	}
 }
 
@@ -134,7 +115,7 @@ func TestEvaluator_Mixed2AC2WA(t *testing.T) {
 		ID:          "mixed-2ac-2wa",
 		UniqID:      "mixed-2ac-2wa",
 		BoxID:       0,
-		ProblemName: "Suma de Dos Números - Mixto 2AC 2WA",
+		ProblemName: "A + B",
 		Language:    "cpp",
 		SourceCode:  sumSource,
 		RunLimits:   domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
@@ -144,14 +125,14 @@ func TestEvaluator_Mixed2AC2WA(t *testing.T) {
 	sandboxManager := services.NewSandboxManagerService()
 	availableID, err := sandboxManager.GetAvailableSandboxID(input.BoxID, boxPool)
 	if err != nil {
-		t.Fatalf("No hay sandbox disponible: %v", err)
+		t.Fatalf("No sandbox available: %v", err)
 	}
 	input.BoxID = availableID
 
 	sandbox := &isolate.IsolateSandbox{}
 	compilerService, err := compiler.GetCompiler(input.Language, input.BoxID)
 	if err != nil {
-		t.Fatalf("Error obteniendo compilador: %v", err)
+		t.Fatalf("Error getting compiler: %v", err)
 	}
 	fs := &fileSystem.FileSystem{}
 	cmp := &comparator.Comparator{}
@@ -161,15 +142,15 @@ func TestEvaluator_Mixed2AC2WA(t *testing.T) {
 	defer boxPool.Release(input.BoxID)
 
 	if err != nil {
-		t.Fatalf("Error al evaluar: %v", err)
+		t.Fatalf("Error during evaluation: %v", err)
 	}
 	spew.Dump(result)
 
 	if result.TotalPassed != 2 && result.TotalCases == 4 {
-		t.Errorf("Se esperaban 2 casos aprobados, pero se aprobaron %d", result.TotalPassed)
+		t.Errorf("Expected %d test cases to pass, but %d passed", len(result.Results), result.TotalPassed)
 	}
 	if result.TotalPassed == len(result.Results) {
-		t.Errorf("Se esperaba que al menos un caso fallara, pero todos pasaron")
+		t.Errorf("Expected status 7 (OJ_AC), but got %d", result.Status)
 	}
 }
 
@@ -189,7 +170,7 @@ func TestEvaluator_MixedAC_RTE_TLE(t *testing.T) {
 		ID:          "mixed-ac-rte-tle",
 		UniqID:      "mixed-ac-rte-tle",
 		BoxID:       0,
-		ProblemName: "Suma de Dos Números - Mixto AC, RTE, TLE",
+		ProblemName: "A + B",
 		Language:    "cpp",
 		SourceCode:  sumSource,
 		RunLimits:   domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
@@ -199,14 +180,14 @@ func TestEvaluator_MixedAC_RTE_TLE(t *testing.T) {
 	sandboxManager := services.NewSandboxManagerService()
 	availableID, err := sandboxManager.GetAvailableSandboxID(input.BoxID, boxPool)
 	if err != nil {
-		t.Fatalf("No hay sandbox disponible: %v", err)
+		t.Fatalf("No sandbox available: %v", err)
 	}
 	input.BoxID = availableID
 
 	sandbox := &isolate.IsolateSandbox{}
 	compilerService, err := compiler.GetCompiler(input.Language, input.BoxID)
 	if err != nil {
-		t.Fatalf("Error obteniendo compilador: %v", err)
+		t.Fatalf("Error getting compiler: %v", err)
 	}
 	fs := &fileSystem.FileSystem{}
 	cmp := &comparator.Comparator{}
@@ -223,19 +204,19 @@ func TestEvaluator_MixedAC_RTE_TLE(t *testing.T) {
 	select {
 	case <-done:
 	case <-time.After(5 * time.Second):
-		t.Fatalf("Timeout en la ejecución, se sospecha TLE en el test")
+		t.Fatalf("Timeout during execution, suspected TLE in the test")
 	}
 
 	if err != nil {
-		t.Fatalf("Error al evaluar: %v", err)
+		t.Fatalf("Error during evaluation: %v", err)
 	}
 	spew.Dump(result)
 
 	if result.TotalPassed != 1 {
-		t.Errorf("Se esperaba 1 caso aprobado, pero se aprobaron %d", result.TotalPassed)
+		t.Errorf("Expected %d test cases to pass, but %d passed", len(result.Results), result.TotalPassed)
 	}
 	if result.Status == 7 {
-		t.Errorf("Se esperaba status distinto a 7 (OJ_OE), pero se obtuvo %d", result.Status)
+		t.Errorf("Expected status 7 (OJ_AC), but got %d", result.Status)
 	}
 }
 
@@ -259,7 +240,7 @@ func TestEvaluator_Complex(t *testing.T) {
 		ID:          "complex",
 		UniqID:      "complex",
 		BoxID:       0,
-		ProblemName: "Suma de Dos Números - Complex",
+		ProblemName: "A + B",
 		Language:    "cpp",
 		SourceCode:  sumSource,
 		RunLimits:   domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
@@ -269,14 +250,14 @@ func TestEvaluator_Complex(t *testing.T) {
 	sandboxManager := services.NewSandboxManagerService()
 	availableID, err := sandboxManager.GetAvailableSandboxID(input.BoxID, boxPool)
 	if err != nil {
-		t.Fatalf("No hay sandbox disponible: %v", err)
+		t.Fatalf("No sandbox available: %v", err)
 	}
 	input.BoxID = availableID
 
 	sandbox := &isolate.IsolateSandbox{}
 	compilerService, err := compiler.GetCompiler(input.Language, input.BoxID)
 	if err != nil {
-		t.Fatalf("Error obteniendo compilador: %v", err)
+		t.Fatalf("Error getting compiler: %v", err)
 	}
 	fs := &fileSystem.FileSystem{}
 	cmp := &comparator.Comparator{}
@@ -293,18 +274,18 @@ func TestEvaluator_Complex(t *testing.T) {
 	select {
 	case <-done:
 	case <-time.After(7 * time.Second):
-		t.Fatalf("Timeout en la ejecución, se sospecha TLE en el test")
+		t.Fatalf("Timeout during execution, suspected TLE in the test")
 	}
 
 	if err != nil {
-		t.Fatalf("Error al evaluar: %v", err)
+		t.Fatalf("Error in the evaluation: %v", err)
 	}
 	spew.Dump(result)
 
 	if result.TotalPassed != 1 {
-		t.Errorf("Se esperaba 1 caso aprobado, pero se aprobaron %d", result.TotalPassed)
+		t.Errorf("Expected 1 test case to pass, but %d passed", result.TotalPassed)
 	}
 	if result.Status == 7 {
-		t.Errorf("Se esperaba status distinto a 7 (OJ_OE), pero se obtuvo %d", result.Status)
+		t.Errorf("Expected status different from 7 (OJ_OE), but got %d", result.Status)
 	}
 }

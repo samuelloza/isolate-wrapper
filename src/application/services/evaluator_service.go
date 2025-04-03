@@ -87,12 +87,12 @@ func (s *EvaluatorService) Evaluate(input domain.EvaluationInput) (domain.Evalua
 		}
 
 		// Run the program in the sandbox
-		logData, err := s.Sandbox.Run(input.BoxID, i)
-		if err != nil {
+		logData, status := s.Sandbox.Run(input.BoxID, i)
+		if status != -1 {
 			results = append(results, domain.TestCaseResult{
-				Index:        i,
-				Passed:       false,
-				ErrorMessage: err.Error(),
+				Index:  i,
+				Passed: false,
+				Status: status,
 			})
 			continue
 		}
@@ -106,6 +106,7 @@ func (s *EvaluatorService) Evaluate(input domain.EvaluationInput) (domain.Evalua
 				Index:        i,
 				Passed:       false,
 				ErrorMessage: err.Error(),
+				Status:       abstractions.OJ_RE,
 			})
 			continue
 		}
@@ -122,6 +123,7 @@ func (s *EvaluatorService) Evaluate(input domain.EvaluationInput) (domain.Evalua
 			Received:      outputPath,
 			ExecutionTime: logData.ExecutionTime,
 			MemoryUsed:    logData.MemoryUsed,
+			Status:        int(cmpResult),
 		})
 	}
 

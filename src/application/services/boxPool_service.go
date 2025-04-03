@@ -6,7 +6,7 @@ type BoxPool struct {
 
 func NewBoxPool(maxBoxes int) *BoxPool {
 	ch := make(chan int, maxBoxes)
-	for i := 0; i < maxBoxes; i++ {
+	for i := 1; i < maxBoxes; i++ {
 		ch <- i
 	}
 	return &BoxPool{pool: ch}

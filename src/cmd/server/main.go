@@ -42,6 +42,7 @@ func main() {
 	}
 
 	boxPool := services.NewBoxPool(2)
+
 	SandboxManagerService := services.NewSandboxManagerService()
 	boxId, err := SandboxManagerService.GetAvailableSandboxID(input.BoxID, boxPool)
 	if err != nil {

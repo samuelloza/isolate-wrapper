@@ -8,6 +8,7 @@ type TestCaseResult struct {
 	ExecutionTime float64
 	MemoryUsed    int
 	ErrorMessage  string
+	Status        int
 }
 
 type EvaluationResult struct {
