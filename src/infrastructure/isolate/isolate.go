@@ -51,6 +51,13 @@ func (s *IsolateSandbox) Run(boxID int, caseIndex int) (abstractions.SandboxLogD
 				MemoryUsed:    memUsed,
 			}, abstractions.OJ_TL
 		}
+
+		if log["status"] == "SG" && log["exitsig"] == "25" {
+			return abstractions.SandboxLogData{
+				ExecutionTime: execTime,
+				MemoryUsed:    memUsed,
+			}, abstractions.OJ_OL
+		}
 		return abstractions.SandboxLogData{
 			ExecutionTime: execTime,
 			MemoryUsed:    memUsed,
