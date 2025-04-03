@@ -18,7 +18,6 @@ type EvaluationInput struct {
 	ProblemName string     `json:"problem_name"`
 	Language    string     `json:"language"`
 	SourceCode  string     `json:"source_code_path"`
-	MetaPrefix  string     `json:"meta_prefix"`
 	BoxID       int        `json:"box_id"`
 	RunLimits   RunLimits  `json:"run_limits"`
 	TestCases   []TestCase `json:"testcases"`

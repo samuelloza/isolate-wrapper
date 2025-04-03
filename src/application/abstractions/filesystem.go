@@ -7,4 +7,5 @@ type FileSystem interface {
 	GetOutputPath(boxID int) string
 	GetErrorPath(boxID int) string
 	DeleteDir(s string) error
+	CreateTmpDirectory(boxID int) error
 }

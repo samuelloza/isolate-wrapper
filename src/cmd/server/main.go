@@ -20,7 +20,7 @@ func main() {
 	input := domain.EvaluationInput{
 		ID:          "123456",
 		UniqID:      "abc123",
-		BoxID:       1,
+		BoxID:       0,
 		ProblemName: "Suma de Dos Números",
 		Language:    "cpp",
 		SourceCode: `#include <iostream>
@@ -31,7 +31,6 @@ func main() {
 					    cout<<a*10<<endl;
 					    return 0;
 					}`,
-		MetaPrefix: "abc123-meta",
 		RunLimits: domain.RunLimits{
 			Time:   2,
 			Memory: 65536,

@@ -44,7 +44,7 @@ func (s *IsolateSandbox) Run(boxID int, caseIndex int) (abstractions.SandboxLogD
 		return abstractions.SandboxLogData{}, err
 	}
 
-	execTime, _ := strconv.Atoi(log["time"])
+	execTime, _ := strconv.ParseFloat(log["time"], 64)
 	memUsed, _ := strconv.Atoi(log["cg-mem"])
 
 	return abstractions.SandboxLogData{

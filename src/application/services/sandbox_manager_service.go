@@ -32,7 +32,7 @@ func (sm *SandboxManagerService) GetAvailableSandboxID(initialBoxID int) (int, e
 
 	for {
 		isFree := sm.IsSandboxIDFree(boxID)
-		if isFree {
+		if isFree && boxID > 0 {
 			return boxID, nil
 		}
 

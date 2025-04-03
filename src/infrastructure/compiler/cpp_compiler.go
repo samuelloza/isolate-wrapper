@@ -16,7 +16,7 @@ func (c *CppCompiler) Compile(srcPath string, _ string) error {
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("Error al compilar %s:\n%s\n", srcPath, string(output))
+		fmt.Printf("compilation failed %s:\n%s\n", srcPath, string(output))
 		return err
 	}
 

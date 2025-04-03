@@ -7,6 +7,6 @@ type Sandbox interface {
 }
 
 type SandboxLogData struct {
-	ExecutionTime int
+	ExecutionTime float64
 	MemoryUsed    int
 }

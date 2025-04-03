@@ -1,135 +1,290 @@
-package application
+package services_test
 
 import (
 	"fmt"
-	"log"
+	"path/filepath"
 	"testing"
+	"time"
 
+	"github.com/davecgh/go-spew/spew"
+	"github.com/samuelloza/isolate-wrapper/src/application/abstractions"
 	"github.com/samuelloza/isolate-wrapper/src/application/services"
 	"github.com/samuelloza/isolate-wrapper/src/domain"
 	"github.com/samuelloza/isolate-wrapper/src/infrastructure/comparator"
 	"github.com/samuelloza/isolate-wrapper/src/infrastructure/compiler"
 	"github.com/samuelloza/isolate-wrapper/src/infrastructure/fileSystem"
 	"github.com/samuelloza/isolate-wrapper/src/infrastructure/isolate"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
-func runTest(t *testing.T, id string, boxID int, code string, expectAllPass bool) {
+const sumSource = `#include <iostream>
+#include <sstream>
+#include <string>
+using namespace std;
+int main(){
+    string line;
+    getline(cin, line);
+    if(line=="RTE"){
+         int a = 0;
+         cout << 1/a;
+         return 0;
+    }
+    if(line=="TLE"){
+         while(true){}
+         return 0;
+    }
+    istringstream iss(line);
+    int a, b;
+    if(!(iss >> a >> b)){
+         cout << "WRONG";
+         return 0;
+    }
+    cout << (a + b) << endl;
+    return 0;
+}
+`
+
+func getTestCases(paths []struct{ in, out string }, cwd string) []domain.TestCase {
+	var tcs []domain.TestCase
+	for _, p := range paths {
+		tcs = append(tcs, domain.TestCase{
+			Input:  filepath.Join(cwd, p.in),
+			Output: filepath.Join(cwd, p.out),
+		})
+	}
+	return tcs
+}
+
+func TestEvaluator_AllAC(t *testing.T) {
+	cwd := "/home/sam/project/github/isolate-wrapper"
+	paths := []struct{ in, out string }{
+		{"test/testcases/sum_allac_1.in", "test/testcases/sum_allac_1.out"},
+		{"test/testcases/sum_allac_2.in", "test/testcases/sum_allac_2.out"},
+	}
+	testCases := getTestCases(paths, cwd)
+
 	input := domain.EvaluationInput{
-		ID:          id,
-		UniqID:      id,
-		BoxID:       boxID,
+		ID:          "all-ac",
+		UniqID:      "all-ac",
+		BoxID:       0,
 		ProblemName: "Suma de Dos Números",
 		Language:    "cpp",
-		SourceCode:  code,
-		MetaPrefix:  id + "-meta",
-		RunLimits: domain.RunLimits{
-			Time:   2,
-			Memory: 65536,
-			Output: 1024,
-		},
-		TestCases: []domain.TestCase{
-			{Input: "../../testcases/test_1.in", Output: "../../testcases/test_1.out"},
-			{Input: "../../testcases/test_2.in", Output: "../../testcases/test_2.out"},
-		},
+		SourceCode:  sumSource,
+		RunLimits:   domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
+		TestCases:   testCases,
 	}
 
-	SandboxManagerService := services.NewSandboxManagerService(99)
-	boxId, err := SandboxManagerService.GetAvailableSandboxID(input.BoxID)
+	sandboxManager := services.NewSandboxManagerService(99)
+	availableID, err := sandboxManager.GetAvailableSandboxID(input.BoxID)
 	if err != nil {
-		log.Fatalf("Error getting sandbox: %v", err)
+		t.Fatalf("No hay sandbox disponible: %v", err)
 	}
-	input.BoxID = boxId
+	input.BoxID = availableID
+	dir := fmt.Sprintf("/tmp/patito-wrapper-%d", input.BoxID)
 
-	directoryTmp := fmt.Sprintf("/tmp/patito-wrapper-%d", input.BoxID)
-	sandboxImpl := &isolate.IsolateSandbox{}
-	compilerImpl, err := compiler.GetCompiler(input.Language, directoryTmp)
+	sandbox := &isolate.IsolateSandbox{}
+	compilerService, err := compiler.GetCompiler(input.Language, dir)
 	if err != nil {
-		log.Fatalf("Compiler error: %v", err)
+		t.Fatalf("Error obteniendo compilador: %v", err)
 	}
-	fileSystemImpl := &fileSystem.FileSystem{}
-	comparatorImpl := &comparator.Comparator{}
-
-	evaluator := services.NewEvaluatorService(sandboxImpl, compilerImpl, fileSystemImpl, comparatorImpl)
+	fs := &fileSystem.FileSystem{}
+	cmp := &comparator.Comparator{}
+	evaluator := services.NewEvaluatorService(sandbox, compilerService, fs, cmp)
 
 	result, err := evaluator.Evaluate(input)
 	if err != nil {
-		t.Fatalf("Evaluate returned error: %v", err)
+		t.Fatalf("Error al evaluar: %v", err)
 	}
 
 	spew.Dump(result)
 
-	if expectAllPass && result.TotalPassed != len(result.Results) {
-		t.Errorf("Expected all test cases to pass, but only %d/%d passed", result.TotalPassed, len(result.Results))
+	if result.TotalPassed != len(result.Results) {
+		t.Errorf("Se esperaban %d casos aprobados, pero se aprobaron %d", len(result.Results), result.TotalPassed)
 	}
-	if !expectAllPass && result.TotalPassed == len(result.Results) {
-		t.Errorf("Expected some test cases to fail, but all passed")
+	if result.Status != abstractions.OJ_AC {
+		t.Errorf("Se esperaba status 7 (OJ_OE), pero se obtuvo %d", result.Status)
 	}
 }
 
-func Test_Evaluator_AC(t *testing.T) {
-	runTest(t, "test-ac", 1, `
-		#include <iostream>
-		using namespace std;
-		int main() {
-		    int a;
-		    cin>>a;
-		    cout<<a*10<<endl;
-		    return 0;
-		}`, true)
+func TestEvaluator_Mixed2AC2WA(t *testing.T) {
+	cwd := "/home/sam/project/github/isolate-wrapper"
+	paths := []struct{ in, out string }{
+		{"test/testcases/sum_mixed_1.in", "test/testcases/sum_mixed_1.out"},
+		{"test/testcases/sum_mixed_2.in", "test/testcases/sum_mixed_2.out"},
+		{"test/testcases/sum_mixed_3.in", "test/testcases/sum_mixed_3.out"},
+		{"test/testcases/sum_mixed_4.in", "test/testcases/sum_mixed_4.out"},
+	}
+	testCases := getTestCases(paths, cwd)
+
+	input := domain.EvaluationInput{
+		ID:          "mixed-2ac-2wa",
+		UniqID:      "mixed-2ac-2wa",
+		BoxID:       0,
+		ProblemName: "Suma de Dos Números - Mixto 2AC 2WA",
+		Language:    "cpp",
+		SourceCode:  sumSource,
+		RunLimits:   domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
+		TestCases:   testCases,
+	}
+
+	sandboxManager := services.NewSandboxManagerService(99)
+	availableID, err := sandboxManager.GetAvailableSandboxID(input.BoxID)
+	if err != nil {
+		t.Fatalf("No hay sandbox disponible: %v", err)
+	}
+	input.BoxID = availableID
+	dir := fmt.Sprintf("/tmp/patito-wrapper-%d", input.BoxID)
+
+	sandbox := &isolate.IsolateSandbox{}
+	compilerService, err := compiler.GetCompiler(input.Language, dir)
+	if err != nil {
+		t.Fatalf("Error obteniendo compilador: %v", err)
+	}
+	fs := &fileSystem.FileSystem{}
+	cmp := &comparator.Comparator{}
+	evaluator := services.NewEvaluatorService(sandbox, compilerService, fs, cmp)
+
+	result, err := evaluator.Evaluate(input)
+	if err != nil {
+		t.Fatalf("Error al evaluar: %v", err)
+	}
+	spew.Dump(result)
+
+	if result.TotalPassed != 2 && result.TotalCases == 4 {
+		t.Errorf("Se esperaban 2 casos aprobados, pero se aprobaron %d", result.TotalPassed)
+	}
+	if result.TotalPassed == len(result.Results) {
+		t.Errorf("Se esperaba que al menos un caso fallara, pero todos pasaron")
+	}
 }
 
-func Test_Evaluator_PE(t *testing.T) {
-	runTest(t, "test-pe", 2, `
-		#include <iostream>
-		using namespace std;
-		int main() {
-		    int a;
-		    cin>>a;
-		    cout<<a*10;
-		    return 0;
-		}`, false)
+func TestEvaluator_MixedAC_RTE_TLE(t *testing.T) {
+	cwd := "/home/sam/project/github/isolate-wrapper"
+
+	paths := []struct{ in, out string }{
+		{"test/testcases/sum_mixed_ac_rte_tle_1.in", "test/testcases/sum_mixed_ac_rte_tle_1.out"},
+		{"test/testcases/sum_mixed_ac_rte_tle_2.in", "test/testcases/sum_mixed_ac_rte_tle_2.out"},
+		{"test/testcases/sum_mixed_ac_rte_tle_3.in", "test/testcases/sum_mixed_ac_rte_tle_3.out"},
+	}
+	testCases := getTestCases(paths, cwd)
+
+	input := domain.EvaluationInput{
+		ID:          "mixed-ac-rte-tle",
+		UniqID:      "mixed-ac-rte-tle",
+		BoxID:       0,
+		ProblemName: "Suma de Dos Números - Mixto AC, RTE, TLE",
+		Language:    "cpp",
+		SourceCode:  sumSource,
+		RunLimits:   domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
+		TestCases:   testCases,
+	}
+
+	sandboxManager := services.NewSandboxManagerService(99)
+	availableID, err := sandboxManager.GetAvailableSandboxID(input.BoxID)
+	if err != nil {
+		t.Fatalf("No hay sandbox disponible: %v", err)
+	}
+	input.BoxID = availableID
+	dir := fmt.Sprintf("/tmp/patito-wrapper-%d", input.BoxID)
+
+	sandbox := &isolate.IsolateSandbox{}
+	compilerService, err := compiler.GetCompiler(input.Language, dir)
+	if err != nil {
+		t.Fatalf("Error obteniendo compilador: %v", err)
+	}
+	fs := &fileSystem.FileSystem{}
+	cmp := &comparator.Comparator{}
+	evaluator := services.NewEvaluatorService(sandbox, compilerService, fs, cmp)
+
+	done := make(chan struct{})
+	var result domain.EvaluationResult
+	go func() {
+		result, err = evaluator.Evaluate(input)
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatalf("Timeout en la ejecución, se sospecha TLE en el test")
+	}
+
+	if err != nil {
+		t.Fatalf("Error al evaluar: %v", err)
+	}
+	spew.Dump(result)
+
+	if result.TotalPassed != 1 {
+		t.Errorf("Se esperaba 1 caso aprobado, pero se aprobaron %d", result.TotalPassed)
+	}
+	if result.Status == 7 {
+		t.Errorf("Se esperaba status distinto a 7 (OJ_OE), pero se obtuvo %d", result.Status)
+	}
 }
 
-func Test_Evaluator_WA(t *testing.T) {
-	runTest(t, "test-wa", 3, `
-		#include <iostream>
-		using namespace std;
-		int main() {
-		    int a;
-		    cin>>a;
-		    cout<<a*10+1<<endl;
-		    return 0;
-		}`, false)
-}
+func TestEvaluator_Complex(t *testing.T) {
+	cwd := "/home/sam/project/github/isolate-wrapper"
 
-func Test_Evaluator_RTE(t *testing.T) {
-	runTest(t, "test-rte", 4, `
-		#include <iostream>
-		using namespace std;
-		int main() {
-		    int a = 0;
-		    cout << 10 / a << endl;
-		    return 0;
-		}`, false)
-}
+	paths := []struct{ in, out string }{
+		{"test/testcases/sum_complex_1.in", "test/testcases/sum_complex_1.out"},
+		{"test/testcases/sum_complex_2.in", "test/testcases/sum_complex_2.out"},
+		{"test/testcases/sum_complex_3.in", "test/testcases/sum_complex_3.out"},
+		{"test/testcases/sum_complex_4.in", "test/testcases/sum_complex_4.out"},
+		{"test/testcases/sum_complex_5.in", "test/testcases/sum_complex_5.out"},
+		{"test/testcases/sum_complex_6.in", "test/testcases/sum_complex_6.out"},
+		{"test/testcases/sum_complex_7.in", "test/testcases/sum_complex_7.out"},
+	}
+	testCases := getTestCases(paths, cwd)
 
-func Test_Evaluator_TLE(t *testing.T) {
-	runTest(t, "test-tle", 5, `
-		#include <iostream>
-		using namespace std;
-		int main() {
-		    while (true) {}
-		    return 0;
-		}`, false)
-}
+	input := domain.EvaluationInput{
+		ID:          "complex",
+		UniqID:      "complex",
+		BoxID:       0,
+		ProblemName: "Suma de Dos Números - Complex",
+		Language:    "cpp",
+		SourceCode:  sumSource,
+		RunLimits:   domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
+		TestCases:   testCases,
+	}
 
-func Test_Evaluator_CE(t *testing.T) {
-	runTest(t, "test-ce", 6, `
-		#include <iostream>
-		int main() {
-		    cout << "Hello"
-		    return 0;
-		}`, false)
+	sandboxManager := services.NewSandboxManagerService(99)
+	availableID, err := sandboxManager.GetAvailableSandboxID(input.BoxID)
+	if err != nil {
+		t.Fatalf("No hay sandbox disponible: %v", err)
+	}
+	input.BoxID = availableID
+	dir := fmt.Sprintf("/tmp/patito-wrapper-%d", input.BoxID)
+
+	sandbox := &isolate.IsolateSandbox{}
+	compilerService, err := compiler.GetCompiler(input.Language, dir)
+	if err != nil {
+		t.Fatalf("Error obteniendo compilador: %v", err)
+	}
+	fs := &fileSystem.FileSystem{}
+	cmp := &comparator.Comparator{}
+	evaluator := services.NewEvaluatorService(sandbox, compilerService, fs, cmp)
+
+	done := make(chan struct{})
+	var result domain.EvaluationResult
+	go func() {
+		result, err = evaluator.Evaluate(input)
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(7 * time.Second):
+		t.Fatalf("Timeout en la ejecución, se sospecha TLE en el test")
+	}
+
+	if err != nil {
+		t.Fatalf("Error al evaluar: %v", err)
+	}
+	spew.Dump(result)
+
+	if result.TotalPassed != 1 {
+		t.Errorf("Se esperaba 1 caso aprobado, pero se aprobaron %d", result.TotalPassed)
+	}
+	if result.Status == 7 {
+		t.Errorf("Se esperaba status distinto a 7 (OJ_OE), pero se obtuvo %d", result.Status)
+	}
 }
