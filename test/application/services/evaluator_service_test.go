@@ -2,6 +2,7 @@ package services_test
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -55,12 +56,14 @@ func getTestCases(paths []struct{ in, out string }, cwd string) []domain.TestCas
 }
 
 func TestEvaluator_AllAC(t *testing.T) {
-	cwd := "/home/sam/project/github/isolate-wrapper"
+	cwd, _ := os.Getwd()
+	projectRoot := filepath.Join(cwd, "../../../")
+
 	paths := []struct{ in, out string }{
 		{"test/testcases/sum_allac_1.in", "test/testcases/sum_allac_1.out"},
 		{"test/testcases/sum_allac_2.in", "test/testcases/sum_allac_2.out"},
 	}
-	testCases := getTestCases(paths, cwd)
+	testCases := getTestCases(paths, projectRoot)
 
 	input := domain.EvaluationInput{
 		ID:          "all-ac",
@@ -158,14 +161,15 @@ func TestEvaluator_Mixed2AC2WA(t *testing.T) {
 }
 
 func TestEvaluator_MixedAC_RTE_TLE(t *testing.T) {
-	cwd := "/home/sam/project/github/isolate-wrapper"
+	cwd, _ := os.Getwd()
+	projectRoot := filepath.Join(cwd, "../../../")
 
 	paths := []struct{ in, out string }{
 		{"test/testcases/sum_mixed_ac_rte_tle_1.in", "test/testcases/sum_mixed_ac_rte_tle_1.out"},
 		{"test/testcases/sum_mixed_ac_rte_tle_2.in", "test/testcases/sum_mixed_ac_rte_tle_2.out"},
 		{"test/testcases/sum_mixed_ac_rte_tle_3.in", "test/testcases/sum_mixed_ac_rte_tle_3.out"},
 	}
-	testCases := getTestCases(paths, cwd)
+	testCases := getTestCases(paths, projectRoot)
 
 	input := domain.EvaluationInput{
 		ID:          "mixed-ac-rte-tle",
@@ -222,7 +226,8 @@ func TestEvaluator_MixedAC_RTE_TLE(t *testing.T) {
 }
 
 func TestEvaluator_Complex(t *testing.T) {
-	cwd := "/home/sam/project/github/isolate-wrapper"
+	cwd, _ := os.Getwd()
+	projectRoot := filepath.Join(cwd, "../../../")
 
 	paths := []struct{ in, out string }{
 		{"test/testcases/sum_complex_1.in", "test/testcases/sum_complex_1.out"},
@@ -233,7 +238,7 @@ func TestEvaluator_Complex(t *testing.T) {
 		{"test/testcases/sum_complex_6.in", "test/testcases/sum_complex_6.out"},
 		{"test/testcases/sum_complex_7.in", "test/testcases/sum_complex_7.out"},
 	}
-	testCases := getTestCases(paths, cwd)
+	testCases := getTestCases(paths, projectRoot)
 
 	input := domain.EvaluationInput{
 		ID:          "complex",
