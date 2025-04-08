@@ -20,16 +20,16 @@ func TestEvaluator_MultipleLines(t *testing.T) {
 	projectRoot := filepath.Join(cwd, "../../../")
 
 	paths := []struct{ in, out string }{
-		{"test/testcases/multi_case_1.in", "test/testcases/multi_case_1.out"},
+		{"test/testcases/1000/multi_case_1.in", "test/testcases/1000/multi_case_1.out"},
 	}
 	testCases := getTestCases(paths, projectRoot)
 
 	input := domain.EvaluationInput{
-		ID:          "multi-lines",
-		UniqID:      "multi-lines",
-		BoxID:       0,
-		ProblemName: "Multiple lines",
-		Language:    "cpp",
+		ID:        "multi-lines",
+		UniqID:    "multi-lines",
+		BoxID:     0,
+		ProblemID: 1000,
+		Language:  "cpp",
 		SourceCode: `#include <iostream>
 using namespace std;
 int main() {
@@ -81,16 +81,16 @@ func TestEvaluator_OutputLimitExceeded(t *testing.T) {
 	projectRoot := filepath.Join(cwd, "../../../")
 
 	paths := []struct{ in, out string }{
-		{"test/testcases/output_limit.in", "test/testcases/output_limit.out"},
+		{"test/testcases/1000/output_limit.in", "test/testcases/1000/output_limit.out"},
 	}
 	testCases := getTestCases(paths, projectRoot)
 
 	input := domain.EvaluationInput{
-		ID:          "output-limit",
-		UniqID:      "output-limit",
-		BoxID:       0,
-		ProblemName: "Output too large",
-		Language:    "cpp",
+		ID:        "output-limit",
+		UniqID:    "output-limit",
+		BoxID:     0,
+		ProblemID: 1000,
+		Language:  "cpp",
 		SourceCode: `#include <iostream>
 using namespace std;
 int main() {

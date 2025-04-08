@@ -32,19 +32,19 @@ func TestEvaluator_CE(t *testing.T) {
 	projectRoot := filepath.Join(cwd, "../../../")
 
 	paths := []struct{ in, out string }{
-		{"test/testcases/sum_allac_1.in", "test/testcases/sum_allac_1.out"},
+		{"test/testcases/1000/sum_allac_1.in", "test/testcases/1000/sum_allac_1.out"},
 	}
 	testCases := getTestCases(paths, projectRoot)
 
 	input := domain.EvaluationInput{
-		ID:          "all-ac",
-		UniqID:      "all-ac",
-		BoxID:       0,
-		ProblemName: "A + B",
-		Language:    "cpp",
-		SourceCode:  sumSourcece,
-		RunLimits:   domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
-		TestCases:   testCases,
+		ID:         "all-ac",
+		UniqID:     "all-ac",
+		BoxID:      0,
+		ProblemID:  1000,
+		Language:   "cpp",
+		SourceCode: sumSourcece,
+		RunLimits:  domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
+		TestCases:  testCases,
 	}
 
 	sandbox := &isolate.IsolateSandbox{}

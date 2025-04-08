@@ -51,14 +51,14 @@ func TestEvaluator_OnlyExtendedCases(t *testing.T) {
 	projectRoot := filepath.Join(cwd, "../../../")
 
 	paths := []struct{ in, out string }{
-		{"test/testcases/extended_case_1.in", "test/testcases/extended_case_1.out"},
-		{"test/testcases/extended_case_2.in", "test/testcases/extended_case_2.out"},
-		{"test/testcases/extended_case_3.in", "test/testcases/extended_case_3.out"},
-		{"test/testcases/extended_case_4.in", "test/testcases/extended_case_4.out"},
-		{"test/testcases/extended_case_5.in", "test/testcases/extended_case_5.out"},
-		{"test/testcases/extended_case_6.in", "test/testcases/extended_case_6.out"},
-		{"test/testcases/extended_case_7.in", "test/testcases/extended_case_7.out"},
-		{"test/testcases/extended_case_8.in", "test/testcases/extended_case_8.out"},
+		{"test/testcases/1000/extended_case_1.in", "test/testcases/1000/extended_case_1.out"},
+		{"test/testcases/1000/extended_case_2.in", "test/testcases/1000/extended_case_2.out"},
+		{"test/testcases/1000/extended_case_3.in", "test/testcases/1000/extended_case_3.out"},
+		{"test/testcases/1000/extended_case_4.in", "test/testcases/1000/extended_case_4.out"},
+		{"test/testcases/1000/extended_case_5.in", "test/testcases/1000/extended_case_5.out"},
+		{"test/testcases/1000/extended_case_6.in", "test/testcases/1000/extended_case_6.out"},
+		{"test/testcases/1000/extended_case_7.in", "test/testcases/1000/extended_case_7.out"},
+		{"test/testcases/1000/extended_case_8.in", "test/testcases/1000/extended_case_8.out"},
 	}
 
 	solutions := []int{
@@ -75,14 +75,14 @@ func TestEvaluator_OnlyExtendedCases(t *testing.T) {
 	testCases := getTestCases(paths, projectRoot)
 
 	input := domain.EvaluationInput{
-		ID:          "2",
-		UniqID:      "2",
-		BoxID:       0,
-		ProblemName: "Extended Test",
-		Language:    "cpp",
-		SourceCode:  sumExtendedSource,
-		RunLimits:   domain.RunLimits{Time: 1, Memory: 65536, Output: 1024},
-		TestCases:   testCases,
+		ID:         "2",
+		UniqID:     "2",
+		BoxID:      0,
+		ProblemID:  1000,
+		Language:   "cpp",
+		SourceCode: sumExtendedSource,
+		RunLimits:  domain.RunLimits{Time: 1, Memory: 65536, Output: 1024},
+		TestCases:  testCases,
 	}
 
 	sandbox := &isolate.IsolateSandbox{}
