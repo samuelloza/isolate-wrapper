@@ -19,10 +19,12 @@ type RequestProcessor struct {
 }
 
 func (rp *RequestProcessor) ProcessRequest() (domain.EvaluationResult, error) {
-
-	//Add current  location of input and output
 	cases, err := rp.TestCaseProvider.GetTestCases(fmt.Sprintf("%d", rp.Input.ProblemID))
 	rp.Input.TestCases = cases
+
+	if err != nil {
+		log.Fatalf("Error getting testcases: %v", err)
+	}
 
 	SandboxManagerService := NewSandboxManagerService()
 	boxId, err := SandboxManagerService.GetAvailableSandboxID(rp.Input.BoxID, rp.BoxPool)
@@ -47,6 +49,5 @@ func (rp *RequestProcessor) ProcessRequest() (domain.EvaluationResult, error) {
 	}
 
 	//spew.Dump(result)
-
 	return result, nil
 }
