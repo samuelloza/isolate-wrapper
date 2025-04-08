@@ -25,7 +25,7 @@ func (sm *SandboxManagerService) IsSandboxIDFree(boxID int) bool {
 }
 
 func (sm *SandboxManagerService) GetAvailableSandboxID(initialBoxID int, boxPool *BoxPool) (int, error) {
-	maxAttempts := 20
+	maxAttempts := 3
 
 	for i := 0; i < maxAttempts; i++ {
 		select {

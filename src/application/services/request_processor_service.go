@@ -32,6 +32,7 @@ func (rp *RequestProcessor) ProcessRequest() (domain.EvaluationResult, error) {
 		log.Fatalf("Error getting sandbox: %v", err)
 	}
 	rp.Input.BoxID = boxId
+	defer rp.BoxPool.Release(rp.Input.BoxID)
 
 	sandboxImpl := &isolate.IsolateSandbox{}
 	compilerImpl, err := compiler.GetCompiler(rp.Input.Language, rp.Input.BoxID)

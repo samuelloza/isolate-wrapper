@@ -1,4 +1,4 @@
-package services
+package http_request
 
 import (
 	"bytes"
@@ -10,7 +10,9 @@ import (
 	"github.com/samuelloza/isolate-wrapper/src/domain"
 )
 
-func SendRequest(url string, data domain.EvaluationInput) (string, error) {
+type HttpRequest struct{}
+
+func (hs *HttpRequest) SendRequest(url string, data domain.EvaluationResult) (string, error) {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal data: %w", err)
