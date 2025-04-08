@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/samuelloza/isolate-wrapper/src/domain"
 	"github.com/streadway/amqp"
@@ -15,14 +16,29 @@ type RabbitService struct {
 }
 
 func NewRabbitService(amqpURL string) (*RabbitService, error) {
-	conn, err := amqp.Dial(amqpURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to RabbitMQ: %w", err)
-	}
+	var conn *amqp.Connection
+	var ch *amqp.Channel
+	var err error
 
-	ch, err := conn.Channel()
-	if err != nil {
-		return nil, fmt.Errorf("failed to open channel: %w", err)
+	for {
+		conn, err = amqp.DialConfig(amqpURL, amqp.Config{
+			Heartbeat: 5 * time.Second,
+			Locale:    "en_US",
+		})
+		if err != nil {
+			log.Printf("RabbitMQ connection failed: %v. Retrying in 5s...", err)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+
+		ch, err = conn.Channel()
+		if err != nil {
+			log.Printf("Failed to open channel: %v. Retrying in 5s...", err)
+			_ = conn.Close()
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		break
 	}
 
 	return &RabbitService{Conn: conn, Channel: ch}, nil
@@ -34,6 +50,15 @@ type EvaluationMessage struct {
 }
 
 func (r *RabbitService) Listen(queueName string, handler func(domain.EvaluationInput) error) error {
+	err := r.Channel.Qos(
+		1,
+		0,
+		false,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to set QoS: %w", err)
+	}
+
 	msgs, err := r.Channel.Consume(
 		queueName,
 		"",
