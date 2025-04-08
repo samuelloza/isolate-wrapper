@@ -17,11 +17,11 @@ func main() {
 	cwd := "/home/sam/project/github/isolate-wrapper"
 
 	input := domain.EvaluationInput{
-		ID:          "123456",
-		UniqID:      "abc123",
-		BoxID:       0,
-		ProblemName: "Suma de Dos Números",
-		Language:    "cpp",
+		ID:        "123456",
+		UniqID:    "abc123",
+		BoxID:     0,
+		ProblemID: 1000,
+		Language:  "cpp",
 		SourceCode: `#include <iostream>
 					using namespace std;
 					int main() {
@@ -36,8 +36,8 @@ func main() {
 			Output: 1024,
 		},
 		TestCases: []domain.TestCase{
-			{Input: filepath.Join(cwd, "test/testcases/test_1.in"), Output: filepath.Join(cwd, "test/testcases/test_1.out")},
-			{Input: filepath.Join(cwd, "test/testcases/test_2.in"), Output: filepath.Join(cwd, "test/testcases/test_2.out")},
+			{Input: filepath.Join(cwd, "test/testcases/1000/test_1.in"), Output: filepath.Join(cwd, "test/testcases/1000/test_1.out")},
+			{Input: filepath.Join(cwd, "test/testcases/1000/test_2.in"), Output: filepath.Join(cwd, "test/testcases/1000/test_2.out")},
 		},
 	}
 

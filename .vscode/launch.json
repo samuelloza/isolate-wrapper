@@ -9,7 +9,7 @@
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "src/cmd/server/main.go"
+            "program": "src/cmd/listener/main.go"
         }
     ]
 }

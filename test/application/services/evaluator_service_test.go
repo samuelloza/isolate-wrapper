@@ -49,20 +49,20 @@ func TestEvaluator_AllAC(t *testing.T) {
 	projectRoot := filepath.Join(cwd, "../../../")
 
 	paths := []struct{ in, out string }{
-		{"test/testcases/sum_allac_1.in", "test/testcases/sum_allac_1.out"},
-		{"test/testcases/sum_allac_2.in", "test/testcases/sum_allac_2.out"},
+		{"test/testcases/1000/sum_allac_1.in", "test/testcases/1000/sum_allac_1.out"},
+		{"test/testcases/1000/sum_allac_2.in", "test/testcases/1000/sum_allac_2.out"},
 	}
 	testCases := getTestCases(paths, projectRoot)
 
 	input := domain.EvaluationInput{
-		ID:          "all-ac",
-		UniqID:      "all-ac",
-		BoxID:       0,
-		ProblemName: "A + B",
-		Language:    "cpp",
-		SourceCode:  sumSource,
-		RunLimits:   domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
-		TestCases:   testCases,
+		ID:         "all-ac",
+		UniqID:     "all-ac",
+		BoxID:      0,
+		ProblemID:  1000,
+		Language:   "cpp",
+		SourceCode: sumSource,
+		RunLimits:  domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
+		TestCases:  testCases,
 	}
 
 	sandbox := &isolate.IsolateSandbox{}
@@ -104,22 +104,22 @@ func TestEvaluator_Mixed2AC2WA(t *testing.T) {
 	cwd, _ := os.Getwd()
 	projectRoot := filepath.Join(cwd, "../../../")
 	paths := []struct{ in, out string }{
-		{"test/testcases/sum_mixed_1.in", "test/testcases/sum_mixed_1.out"},
-		{"test/testcases/sum_mixed_2.in", "test/testcases/sum_mixed_2.out"},
-		{"test/testcases/sum_mixed_3.in", "test/testcases/sum_mixed_3.out"},
-		{"test/testcases/sum_mixed_4.in", "test/testcases/sum_mixed_4.out"},
+		{"test/testcases/1000/sum_mixed_1.in", "test/testcases/1000/sum_mixed_1.out"},
+		{"test/testcases/1000/sum_mixed_2.in", "test/testcases/1000/sum_mixed_2.out"},
+		{"test/testcases/1000/sum_mixed_3.in", "test/testcases/1000/sum_mixed_3.out"},
+		{"test/testcases/1000/sum_mixed_4.in", "test/testcases/1000/sum_mixed_4.out"},
 	}
 	testCases := getTestCases(paths, projectRoot)
 
 	input := domain.EvaluationInput{
-		ID:          "mixed-2ac-2wa",
-		UniqID:      "mixed-2ac-2wa",
-		BoxID:       0,
-		ProblemName: "A + B",
-		Language:    "cpp",
-		SourceCode:  sumSource,
-		RunLimits:   domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
-		TestCases:   testCases,
+		ID:         "mixed-2ac-2wa",
+		UniqID:     "mixed-2ac-2wa",
+		BoxID:      0,
+		ProblemID:  1000,
+		Language:   "cpp",
+		SourceCode: sumSource,
+		RunLimits:  domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
+		TestCases:  testCases,
 	}
 
 	sandboxManager := services.NewSandboxManagerService()
@@ -160,21 +160,21 @@ func TestEvaluator_MixedAC_RTE_TLE(t *testing.T) {
 	projectRoot := filepath.Join(cwd, "../../../")
 
 	paths := []struct{ in, out string }{
-		{"test/testcases/sum_mixed_ac_rte_tle_1.in", "test/testcases/sum_mixed_ac_rte_tle_1.out"},
-		{"test/testcases/sum_mixed_ac_rte_tle_2.in", "test/testcases/sum_mixed_ac_rte_tle_2.out"},
-		{"test/testcases/sum_mixed_ac_rte_tle_3.in", "test/testcases/sum_mixed_ac_rte_tle_3.out"},
+		{"test/testcases/1000/sum_mixed_ac_rte_tle_1.in", "test/testcases/1000/sum_mixed_ac_rte_tle_1.out"},
+		{"test/testcases/1000/sum_mixed_ac_rte_tle_2.in", "test/testcases/1000/sum_mixed_ac_rte_tle_2.out"},
+		{"test/testcases/1000/sum_mixed_ac_rte_tle_3.in", "test/testcases/1000/sum_mixed_ac_rte_tle_3.out"},
 	}
 	testCases := getTestCases(paths, projectRoot)
 
 	input := domain.EvaluationInput{
-		ID:          "mixed-ac-rte-tle",
-		UniqID:      "mixed-ac-rte-tle",
-		BoxID:       0,
-		ProblemName: "A + B",
-		Language:    "cpp",
-		SourceCode:  sumSource,
-		RunLimits:   domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
-		TestCases:   testCases,
+		ID:         "mixed-ac-rte-tle",
+		UniqID:     "mixed-ac-rte-tle",
+		BoxID:      0,
+		ProblemID:  1000,
+		Language:   "cpp",
+		SourceCode: sumSource,
+		RunLimits:  domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
+		TestCases:  testCases,
 	}
 
 	sandboxManager := services.NewSandboxManagerService()
@@ -226,25 +226,25 @@ func TestEvaluator_Complex(t *testing.T) {
 	projectRoot := filepath.Join(cwd, "../../../")
 
 	paths := []struct{ in, out string }{
-		{"test/testcases/sum_complex_1.in", "test/testcases/sum_complex_1.out"},
-		{"test/testcases/sum_complex_2.in", "test/testcases/sum_complex_2.out"},
-		{"test/testcases/sum_complex_3.in", "test/testcases/sum_complex_3.out"},
-		{"test/testcases/sum_complex_4.in", "test/testcases/sum_complex_4.out"},
-		{"test/testcases/sum_complex_5.in", "test/testcases/sum_complex_5.out"},
-		{"test/testcases/sum_complex_6.in", "test/testcases/sum_complex_6.out"},
-		{"test/testcases/sum_complex_7.in", "test/testcases/sum_complex_7.out"},
+		{"test/testcases/1000/sum_complex_1.in", "test/testcases/1000/sum_complex_1.out"},
+		{"test/testcases/1000/sum_complex_2.in", "test/testcases/1000/sum_complex_2.out"},
+		{"test/testcases/1000/sum_complex_3.in", "test/testcases/1000/sum_complex_3.out"},
+		{"test/testcases/1000/sum_complex_4.in", "test/testcases/1000/sum_complex_4.out"},
+		{"test/testcases/1000/sum_complex_5.in", "test/testcases/1000/sum_complex_5.out"},
+		{"test/testcases/1000/sum_complex_6.in", "test/testcases/1000/sum_complex_6.out"},
+		{"test/testcases/1000/sum_complex_7.in", "test/testcases/1000/sum_complex_7.out"},
 	}
 	testCases := getTestCases(paths, projectRoot)
 
 	input := domain.EvaluationInput{
-		ID:          "complex",
-		UniqID:      "complex",
-		BoxID:       0,
-		ProblemName: "A + B",
-		Language:    "cpp",
-		SourceCode:  sumSource,
-		RunLimits:   domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
-		TestCases:   testCases,
+		ID:         "complex",
+		UniqID:     "complex",
+		BoxID:      0,
+		ProblemID:  1000,
+		Language:   "cpp",
+		SourceCode: sumSource,
+		RunLimits:  domain.RunLimits{Time: 2, Memory: 65536, Output: 1024},
+		TestCases:  testCases,
 	}
 
 	sandboxManager := services.NewSandboxManagerService()

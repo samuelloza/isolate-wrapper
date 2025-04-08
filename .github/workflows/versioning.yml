@@ -1,0 +1,22 @@
+name: gitops-autover
+
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+  use-action:
+    name: Verify GitOps AutoVer Action
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Run GitOps Automatic Versioning Action
+      id: gitops-autover
+      uses: AlexAtkinson/github-action-gitops-autover@0.3.1
+    - name: Verify Outputs
+      run: |
+        NEW_VERSION=${{ steps.gitops-autover.outputs.new-version }}
+        echo "new-version: $NEW_VERSION"
+        PREVIOUS_VERSION=${{ steps.gitops-autover.outputs.previous-version }}
+        echo "previous-version: $PREVIOUS_VERSION"
