@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	log.Println("🔄 Starting isolate-wrapper listener...")
+	log.Println("Starting isolate-wrapper listener...")
 
 	if err := godotenv.Load(); err != nil {
 		log.Println("⚠️  No .env file found, using environment variables.")
@@ -21,9 +21,14 @@ func main() {
 	rabbitURL := os.Getenv("RABBITMQ_URL")
 	if rabbitURL == "" {
 		rabbitURL = "amqp://guest:guest@127.0.0.1:5672/"
-		log.Println("⚠️  Using default RABBITMQ_URL:", rabbitURL)
+		log.Println("Using default RABBITMQ_URL:", rabbitURL)
 	}
-	rabbitURL = "amqp://guest:guest@127.0.0.1:5672/"
+
+	testCasesPath := os.Getenv("TESTCASES_PATH")
+	if testCasesPath == "" {
+		testCasesPath = "/home/sam/project/github/isolate-wrapper/test/testcases"
+		log.Println("Using default TESTCASES_PATH:", testCasesPath)
+	}
 
 	boxPool := services.NewBoxPool(10)
 
@@ -33,7 +38,7 @@ func main() {
 	}
 	defer rmq.Close()
 
-	fileSystemProvider := testcaseprovider.NewFileSystemTestCaseProvider("/home/sam/project/github/isolate-wrapper/test/testcases")
+	fileSystemProvider := testcaseprovider.NewFileSystemTestCaseProvider(testCasesPath)
 
 	handler := func(msg domain.EvaluationInput) error {
 		log.Printf("Received submission ID: %s | Language: %s | Problem: %d",
